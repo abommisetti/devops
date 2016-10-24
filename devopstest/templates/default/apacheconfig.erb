@@ -12,13 +12,14 @@
   CustomLog <%= node[:apache][:log_dir] %>/<%= @params[:name] %>-access.log combined env=!forwarded
   CustomLog <%= node[:apache][:log_dir] %>/<%= @params[:name] %>-access.log  proxy env=forwarded
   ErrorLog <%= node[:apache][:log_dir] %>/<%= @params[:name] %>-error.log
+  RewriteEngine on
+  RewriteRule ^/(.*) https://%{HTTP_HOST}/$1 [NC,R=301,L]
 
   FileETag none
    <Directory <%= @params[:docroot] %>>
         Options Indexes FollowSymLinks
         AllowOverride All
-        Require env allowed_in
-        Require env is_not_forwarded
+        Require all granted
    </Directory>
 
   <% if node[:apache][:version] == '2.2' -%>
@@ -29,13 +30,19 @@
   
 </VirtualHost>
 
-<% if node['dthybrisproxy']['enable_ssl'] -%>
+<% if node['adapache']['enable_ssl'] -%>
 <VirtualHost *:443>
   ServerName <%= @params[:server_name] %>
   <% if @params[:server_aliases] && !@params[:server_aliases].empty? -%>
   ServerAlias <% @params[:server_aliases].each do |a| %><%= "#{a}" %> <% end %>
   <% end -%>
   DocumentRoot <%= @params[:docroot] %>
+
+  <Directory <%= @params[:docroot] %>>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+   </Directory>
 
   SSLEngine on
   SSLProxyEngine On

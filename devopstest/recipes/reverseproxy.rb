@@ -60,11 +60,6 @@ if app['shortname'].downcase == node['addevops']['appname'].downcase
   if app['environment']['appenv'] =~ /devops/
       web_app app['shortname'].downcase do
         docroot         node['adapache']['appsdir']['docroot']
-        hybsfelb        app['environment']['hybsfelb']
-        keepalive       app['environment']['keepalive']
-        ping            app['environment']['ping']
-        ttl             app['environment']['ttl']
-        max             app['environment']['max']
         server_name     app['domains'].first
         server_aliases  app['domains'][1, app['domains'].size]
         template "default/apacheconfig.erb"
@@ -77,6 +72,7 @@ template "#{node[:apache][:dir]}"'/ssl/devops.crt' do
      group "apache"
     mode '0600'
     action :create
+    notifies :restart, "service[apache2]"
   end
 template "#{node[:apache][:dir]}"'/ssl/devops.key' do
     source 'devops.key.erb'
@@ -84,5 +80,14 @@ template "#{node[:apache][:dir]}"'/ssl/devops.key' do
      group "apache"
     mode '0600'
     action :create
+    notifies :restart, "service[apache2]"
+  end
+  template "#{node['adapache']['appsdir']['base']}"'/www/helloworld.html do
+    source 'helloworld.html.erb'
+     owner "apache"
+     group "apache"
+    mode '0600'
+    action :create
+    notifies :restart, "service[apache2]"
   end
 end
