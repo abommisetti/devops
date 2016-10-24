@@ -1,0 +1,70 @@
+<VirtualHost *:80>
+  ServerName <%= @params[:server_name] %>
+  <% if @params[:server_aliases] && !@params[:server_aliases].empty? -%>
+    ServerAlias <% @params[:server_aliases].each do |a| %><%= "#{a}" %> <% end %>
+  <% end -%>
+  DocumentRoot <%= @params[:docroot] %>
+    
+  LogLevel <%= node[:apache][:log_level] %>
+  LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
+  LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" proxy
+  SetEnvIf X-Forwarded-For "^.*\..*\..*\..*" forwarded
+  CustomLog <%= node[:apache][:log_dir] %>/<%= @params[:name] %>-access.log combined env=!forwarded
+  CustomLog <%= node[:apache][:log_dir] %>/<%= @params[:name] %>-access.log  proxy env=forwarded
+  ErrorLog <%= node[:apache][:log_dir] %>/<%= @params[:name] %>-error.log
+
+  FileETag none
+   <Directory <%= @params[:docroot] %>>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require env allowed_in
+        Require env is_not_forwarded
+   </Directory>
+
+  <% if node[:apache][:version] == '2.2' -%>
+  #Include <%= @params[:local_config] %>*
+  <% else -%>
+  #IncludeOptional <%= @params[:local_config] %>*
+  <% end -%>
+  
+</VirtualHost>
+
+<% if node['dthybrisproxy']['enable_ssl'] -%>
+<VirtualHost *:443>
+  ServerName <%= @params[:server_name] %>
+  <% if @params[:server_aliases] && !@params[:server_aliases].empty? -%>
+  ServerAlias <% @params[:server_aliases].each do |a| %><%= "#{a}" %> <% end %>
+  <% end -%>
+  DocumentRoot <%= @params[:docroot] %>
+
+  SSLEngine on
+  SSLProxyEngine On
+  SSLProxyVerify none
+  SSLProxyCheckPeerCN off
+  SSLProxyCheckPeerName off
+  SSLProxyCheckPeerExpire off
+  SSLCertificateFile <%= node[:apache][:dir] %>/ssl/<%= @params[:server_name] %>.crt
+  SSLCertificateKeyFile <%= node[:apache][:dir] %>/ssl/<%= @params[:server_name] %>.key
+  <% if @params[:ssl_certificate_ca] -%>
+  SSLCACertificateFile <%= node[:apache][:dir] %>/ssl/<%= @params[:server_name] %>.ca
+  <% end -%>
+  SetEnvIf User-Agent ".*MSIE.*" nokeepalive ssl-unclean-shutdown downgrade-1.0 force-response-1.0
+  LogLevel <%= node[:apache][:log_level] %>
+  LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
+  LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" proxy
+  SetEnvIf X-Forwarded-For "^.*\..*\..*\..*" forwarded
+  CustomLog <%= node[:apache][:log_dir] %>/<%= @params[:name] %>-access.log combined env=!forwarded
+  CustomLog <%= node[:apache][:log_dir] %>/<%= @params[:name] %>-access.log proxy env=forwarded
+  ErrorLog <%= node[:apache][:log_dir] %>/<%= @params[:name] %>-error.log
+  FileETag none
+  <% if node[:apache][:version] == '2.2' -%>
+  Include <%= @params[:rewrite_config] %>-ssl*
+  RewriteLog <%= node[:apache][:log_dir] %>/<%= @application_name %>-rewrite.log
+  RewriteLogLevel 0
+  <% else -%>
+  #IncludeOptional <%= @params[:rewrite_config] %>-ssl*
+  <% end -%>
+
+
+</VirtualHost>
+<% end -%>
