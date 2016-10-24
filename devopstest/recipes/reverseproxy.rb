@@ -82,7 +82,7 @@ template "#{node[:apache][:dir]}"'/ssl/devops.key' do
     action :create
     notifies :restart, "service[apache2]"
   end
-  template "#{node['adapache']['appsdir']['base']}"'/www/helloworld.html do
+  template "#{node['adapache']['appsdir']['base']}"'/www/helloworld.html' do
     source 'helloworld.html.erb'
      owner "apache"
      group "apache"
