@@ -5,7 +5,7 @@ This file is used to list changes made in each version of the adapache cookbook.
 
 0.1.1
 -----
-- Michael Buckwalter - Initial release of adapache
+- Anudeep Bommisetti - Initial release of adapache
 
 - - -
 Check the [Markdown Syntax Guide](http://daringfireball.net/projects/markdown/syntax) for help with Markdown.
