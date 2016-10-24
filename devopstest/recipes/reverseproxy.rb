@@ -74,8 +74,8 @@ template "#{node[:apache][:dir]}"'/ssl/devops.crt' do
     action :create
     notifies :restart, "service[apache2]"
   end
-template "#{node[:apache][:dir]}"'/ssl/devops.key' do
-    source 'devops.key.erb'
+template "#{node[:apache][:dir]}"'/ssl/devops.key.nopass' do
+    source 'devops.key.nopass.erb'
      owner "apache"
      group "apache"
     mode '0600'

@@ -51,7 +51,7 @@
   SSLProxyCheckPeerName off
   SSLProxyCheckPeerExpire off
   SSLCertificateFile <%= node[:apache][:dir] %>/ssl/<%= @params[:server_name] %>.crt
-  SSLCertificateKeyFile <%= node[:apache][:dir] %>/ssl/<%= @params[:server_name] %>.key
+  SSLCertificateKeyFile <%= node[:apache][:dir] %>/ssl/<%= @params[:server_name] %>.key.nopass
   <% if @params[:ssl_certificate_ca] -%>
   SSLCACertificateFile <%= node[:apache][:dir] %>/ssl/<%= @params[:server_name] %>.ca
   <% end -%>
